@@ -5,7 +5,7 @@
 #include <iostream>
 int main()
 {
-    Game game;
+    /*Game game;
     while (!game.getHasGameEnded())
     {
         game.getGameboard().PrintBoard();
@@ -19,9 +19,9 @@ int main()
             game.getGameboard().PrintBoard();
             game.swapActivePlayer();
         }
-    }
+    }*/
 
-    /*Gameboard board;
+    Gameboard board;
     board.moveChesspiece({0,0},{3,3});
     board.PrintBoard();
     for (int i=0; i<8; ++i)
@@ -36,7 +36,7 @@ int main()
     if(board.isPossitionOccupied({0,0}))
     board.moveChesspiece({0,0},{0,6});
 
-    board.PrintBoard();*/
+    board.PrintBoard();
 
     return 0;
 }
