@@ -38,6 +38,15 @@ Position ReadInput(const std::string& enquiry)
     }
 }
 
+template <typename T>
+T abs(T input)
+{
+    return input > 0 ? input : -input;
+}
+bool Position::operator== (const Position& p) const
+{
+    return ((m_x == p.m_x) && (m_y == p.m_y));
+}
 std::ostream& operator<< (std::ostream& out, const Position& p)
 {
     return out << '(' << p.m_x << ',' << p.m_y << ')';

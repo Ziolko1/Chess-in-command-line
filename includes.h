@@ -9,6 +9,7 @@ struct Position
     char m_y;   //Row       -> 1 - 8
 
     Position (char x, char y): m_x(x), m_y(y){};
+    bool operator== (const Position& p) const;
 };
 
 enum class Color
@@ -20,6 +21,8 @@ enum class Color
 
 void tests();
 Position ReadInput(const std::string& enquiry);
+template <typename T>
+T abs(T input);
 
 std::ostream& operator<< (std::ostream& out, const Position& p);
 int16_t PositionToIndex (const Position& p);

@@ -62,8 +62,9 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0)
         for (int j{0}; j<CELLS; ++j)
         {
             //We need to swap middle of the square for chess piece symbol
-            if(((std::floor(static_cast<float>(CELLS)/2))==j)             //Check for correct column
-                    &&(rowNumber!=0))                                     //Check for correct row
+            if(((std::floor(static_cast<float>(CELLS)/2))==j)       //Check for correct column
+                && rowNumber!=0                                     //Check for correct row
+                && m_board.at(PositionToIndex({i+'A', rowNumber+'0'})).getColor() != Color::MAX_VALUE)
             {
                 output += m_board.at(PositionToIndex({i+'A', rowNumber+'0'})).getType();
             }
@@ -89,9 +90,8 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0)
 
 void Game::PrintBoard ()
 {
-    //First - column symbols for player checking
+    //First - column symbols to guide players
     Game::PrintColumnSymbols();
-
     //Because we can't print on line that was put already on the screen
     //we have to use functions that will do row of cells at a time
     //Printing 8 columns
@@ -100,11 +100,19 @@ void Game::PrintBoard ()
         //Square is half CELLS high
         for (int j{0}; j<(std::ceil(static_cast<float>(CELLS)/2)); ++j)
         {
-            //If this is middle row we add number of it to the arguments (chess notation)
+            //If this is middle row we add a row number to the arguments
             if((std::floor(static_cast<float>(CELLS)/4))==j)
                 Game::PrintLine(i%2, BOARDSIZE-i);
             else
                 Game::PrintLine(i%2);
         }
     }
+}
+bool Game::checkLine(int16_t start, int16_t target) const
+{
+
+}
+const std::vector<Piece>& Game::getBoard() const
+{
+    return m_board;
 }

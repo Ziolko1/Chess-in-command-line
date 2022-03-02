@@ -28,4 +28,6 @@ class Game
 public:
     Game();
     void PrintBoard();
+    bool checkLine(int16_t start, int16_t target) const;
+    const std::vector<Piece>& getBoard() const;
 };
