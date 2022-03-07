@@ -8,15 +8,26 @@ struct Position
     char m_x;   //Column    -> A - H
     char m_y;   //Row       -> 1 - 8
 
-    Position (char x, char y): m_x(x), m_y(y){};
+    Position (char x, char y);
+    Position (int16_t i);
     bool operator== (const Position& p) const;
 };
 
 enum class Color
 {
+    EMPTY,
     WHITE,
-    BLACK,
-    MAX_VALUE
+    BLACK
+};
+
+enum class MoveType
+{
+    NOT_VALID,
+    MOVE,
+    PAWN_PUSH,
+    CASTLING,
+    EN_PASSANT,
+    PROMOTION
 };
 
 void tests();
@@ -24,7 +35,7 @@ Position ReadInput(const std::string& enquiry);
 template <typename T>
 T abs(T input);
 
+Color getOppositeColor (Color input);
 std::ostream& operator<< (std::ostream& out, const Position& p);
-int16_t PositionToIndex (const Position& p);
-Position IndexToPosition (int16_t index);
+int16_t positionToIndex (const Position& p);
 

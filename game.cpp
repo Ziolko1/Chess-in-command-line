@@ -3,7 +3,6 @@
 
 Game::Game()
 {
-    m_board.reserve(64);
     for (uint32_t i{0}; i<64; ++i)
     {
         m_board.emplace_back();
@@ -31,7 +30,7 @@ Game::Game()
     m_board.at(62).setPiece('N',Color::WHITE);
     m_board.at(63).setPiece('R',Color::WHITE);
 }
-void Game::PrintColumnSymbols()
+void Game::PrintColumnSymbols() const
 {
     std::string output;
     //Before first column symbol we need to add half square of spacing
@@ -52,7 +51,7 @@ void Game::PrintColumnSymbols()
     std::cout << output;
 }
 
-void Game::PrintLine (bool whiteFirst=true, int rowNumber=0)
+void Game::PrintLine (bool whiteFirst=true, int rowNumber=0) const
 {
     std::string output;
     //Preparing row of BOARDSIZE(8) squares for printing
@@ -64,9 +63,9 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0)
             //We need to swap middle of the square for chess piece symbol
             if(((std::floor(static_cast<float>(CELLS)/2))==j)       //Check for correct column
                 && rowNumber!=0                                     //Check for correct row
-                && m_board.at(PositionToIndex({i+'A', rowNumber+'0'})).getColor() != Color::MAX_VALUE)
+                && m_board.at(i + (8 - rowNumber) * 8).getColor() != Color::EMPTY)
             {
-                output += m_board.at(PositionToIndex({i+'A', rowNumber+'0'})).getType();
+                output += m_board.at(i + (8 - rowNumber) * 8).getType();
             }
             else
             {
@@ -82,13 +81,13 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0)
     //After full line we can add which row on board was it
     if (rowNumber!=0)
     {
-        output+="\t";
+        output+=' ';
         output+=('0'+rowNumber);
     }
     std::cout << output << '\n';
 }
 
-void Game::PrintBoard ()
+void Game::PrintBoard() const
 {
     //First - column symbols to guide players
     Game::PrintColumnSymbols();
@@ -108,9 +107,9 @@ void Game::PrintBoard ()
         }
     }
 }
-bool Game::checkLine(int16_t start, int16_t target) const
+bool Game::isPossitionOccupied(int16_t target) const
 {
-
+    return m_board.at(target).getColor() == Color::EMPTY ? false : true;
 }
 const std::vector<Piece>& Game::getBoard() const
 {

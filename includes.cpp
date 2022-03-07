@@ -1,13 +1,16 @@
 #include "includes.h"
 
+Position::Position (char x, char y): m_x(x), m_y(y) {}
+Position::Position (int16_t i) : m_x (i%8 + 'A'), m_y ('8' - i/8) {}
+
 void tests()
 {
-    //IndexToPosition and PositionToIndex transformations
+    //Int16_t constructor and PositionToIndex transformations test
     for (int i{0}; i<64; ++i)
     {
-        Position x (IndexToPosition(i));
-        std::cout << i << " translates to: " << x << '\t'
-        << x << " translates back to: " << PositionToIndex(x) << '\n';
+        Position x (i);
+        std::cout << i << " translates to: " << x
+        << ", translates back to: " << positionToIndex(x) << '\n';
     }
     std::cout << '\n';
 }
@@ -52,12 +55,16 @@ std::ostream& operator<< (std::ostream& out, const Position& p)
     return out << '(' << p.m_x << ',' << p.m_y << ')';
 }
 
-int16_t PositionToIndex (const Position& p)
+int16_t positionToIndex (const Position& p)
 {
     return p.m_x - 'A' + ('8' - p.m_y) * 8;
 }
 
-Position IndexToPosition (int16_t index)
+Color getOppositeColor (Color input)
 {
-    return {index%8 + 'A', '8' - index/8};
+    if (input == Color::WHITE)
+        return Color::BLACK;
+    if (input == Color::BLACK)
+        return Color::WHITE;
+    return Color::EMPTY;
 }

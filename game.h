@@ -23,11 +23,11 @@ class Game
 {
     std::vector<Piece> m_board;
 
-    void PrintColumnSymbols();
-    void PrintLine(bool whiteFirst, int rowNumber);
+    void PrintColumnSymbols() const;
+    void PrintLine(bool whiteFirst, int rowNumber) const;
 public:
     Game();
-    void PrintBoard();
-    bool checkLine(int16_t start, int16_t target) const;
+    void PrintBoard() const;
+    bool isPossitionOccupied(int16_t target) const;
     const std::vector<Piece>& getBoard() const;
 };
