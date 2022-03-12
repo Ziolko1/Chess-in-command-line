@@ -1,9 +1,19 @@
 #include "piece.h"
 
+Piece::Piece () : m_type(' '), m_color(Color::EMPTY) {}
+Piece::Piece (char t, Color c) : m_type(t), m_color(c) {}
 void Piece::setPiece(char t, Color c)
 {
     m_type = t;
     m_color = c;
+}
+void Piece::setMoved()
+{
+    m_hasMoved = true;
+}
+bool Piece::getMoved() const
+{
+    return m_hasMoved;
 }
 
 char Piece::getType() const
@@ -25,15 +35,15 @@ Color Piece::getColor() const
 //   X+21  X+22  X+23  X+24  X+25  X+26  X+27  X+28
 //   X+29  X+30  X+31  X+32  X+33  X+34  X+35  X+36
 
-bool Piece::checkLine(int16_t start, int16_t target, const Game& game)
+bool Piece::checkLine(int16_t start, int16_t target, const Game& game) const
 {
     //I am not sure if this function should live in this class
     //Check if a straight, horizontal, vertical or diagonal line can be made from provided points
     //If it is horizontal or vertical only one coordinate will change     (queen, rook)
     //If is is diagonal both coordinates have to change equal amount      (queen, bishop)
     //We do not have to check current piece position and target - these will be checked by caller
-    int changeX {(target - start) %8};
-    int changeY {(target - start) /8};
+    int changeX {(target - start) % 8};
+    int changeY {(target - start) / 8};
 
     if ((!changeX && changeY) || (changeX && !changeY) || abs(changeX)==abs(changeY))
     {
@@ -59,69 +69,60 @@ bool Piece::checkLine(int16_t start, int16_t target, const Game& game)
     return false;
 }
 
-MoveType Piece::PawnMove   (int16_t start, int16_t target, const Game& game)
+MoveType Piece::PawnMove   (int16_t start, int16_t target, const Game& game) const
 {
     int16_t dir {m_color == Color::WHITE ? -1 : 1}, dx{target - start};
-    if (dx == dir * 8 && !game.isPossitionOccupied(target))
+    if (dx == dir * 8 && !game.isPossitionOccupied(target))     //Move ahead
     {
-        m_hasMoved = true;
+        if (game.isReachingLastRank(start, target))
+            return MoveType::PROMOTION;
+
         return MoveType::MOVE;
     }
-    if ((dx == dir * 7 || dx == dir * 9) && (game.getBoard().at(target).getColor() == getOppositeColor (m_color)))
+    if ((dx == dir * 7 || dx == dir * 9)                //Capture diagonally
+        && (game.getBoard().at(target).getColor() == getOppositeColor (m_color)))
     {
-        m_hasMoved = true;
+         if (game.isReachingLastRank(start, target))
+            return MoveType::PROMOTION;
+
         return MoveType::MOVE;
     }
-    if (dx == dir * 16 && m_hasMoved == false
+    if (dx == dir * 16 && m_hasMoved == false           //Double move
          && !game.isPossitionOccupied(target)           //check targeted cell
          && !game.isPossitionOccupied(target + dx / 2)) //and one between
-    {
-        m_hasMoved = true;
-        return MoveType::PAWN_PUSH;
-    }
-    if ((m_color == Color::WHITE && target / 8 == 0) || (m_color == Color::BLACK && target / 8 == 7))
-    {
-        return MoveType::PROMOTION;
-    }
+            return MoveType::PAWN_PUSH;
+
     return MoveType::NOT_VALID;
 }
-MoveType Piece::RookMove   (int16_t start, int16_t target, const Game& game)
+MoveType Piece::RookMove   (int16_t start, int16_t target, const Game& game) const
 {
     Position s(start), t(target);
-    if (((s.m_x == t.m_x) || (s.m_y == t.m_y)) //If one of the coordinates is the same
-        && (checkLine(start, target, game)))   //AND if the line between is empty
-    {
-        m_hasMoved = true;
-        return MoveType::MOVE;
-    }
+    if (((s.m_x == t.m_x) || (s.m_y == t.m_y))          //If one of the coordinates is the same
+        && (checkLine(start, target, game)))            //AND if the line between is empty
+            return MoveType::MOVE;
+
     return MoveType::NOT_VALID;
 }
-MoveType Piece::KnightMove (int16_t start, int16_t target)
+MoveType Piece::KnightMove (int16_t start, int16_t target) const
 {
     int16_t dx {abs(start - target)};
     std::vector <int16_t> correctValues {6, 10, 15, 17};
     for (int16_t entry : correctValues)
-    {
         if (dx == entry)
-        {
-            m_hasMoved = true;
             return MoveType::MOVE;
-        }
-    }
+
     return MoveType::NOT_VALID;
 }
-MoveType Piece::BishopMove (int16_t start, int16_t target, const Game& game)
+MoveType Piece::BishopMove (int16_t start, int16_t target, const Game& game) const
 {
     int16_t dx {abs(start - target)};
-    if (dx % 7 == 0 || dx % 9 == 0 &&     //If moving diagonally
-        (checkLine(start, target, game))) //AND if the line is empty
-    {
-        m_hasMoved = true;
-        return MoveType::MOVE;
-    }
+    if (dx % 7 == 0 || dx % 9 == 0                  //If moving diagonally
+        && (checkLine(start, target, game)))        //AND if the line is empty
+            return MoveType::MOVE;
+
     return MoveType::NOT_VALID;
 }
-MoveType Piece::QueenMove  (int16_t start, int16_t target, const Game& game)
+MoveType Piece::QueenMove  (int16_t start, int16_t target, const Game& game) const
 {
     if (RookMove(start, target, game) == MoveType::MOVE
         || BishopMove (start, target, game) == MoveType::MOVE)
@@ -129,7 +130,7 @@ MoveType Piece::QueenMove  (int16_t start, int16_t target, const Game& game)
     else
         return MoveType::NOT_VALID;
 }
-MoveType Piece::KingMove   (int16_t start, int16_t target)
+MoveType Piece::KingMove   (int16_t start, int16_t target, const Game& game) const
 {
     int16_t dx {abs(start - target)};
     std::vector <int16_t> correctValues {1, 7, 8, 9};
@@ -137,19 +138,32 @@ MoveType Piece::KingMove   (int16_t start, int16_t target)
     {
         if (dx == entry)
         {
-            m_hasMoved = true;
             return MoveType::MOVE;
         }
     }
-    if (dx == 2)    //castling
-    {
 
+    // Castling rules:
+    // The King and the Rook have not moved yet,
+    // There are no pieces between the King and the Rook,
+    // Cells that king is moving through can not be under attack
+
+    if (dx == 2 && !m_hasMoved)     //Player is trying to move king 2 cells, king has not moved
+    {
+        //Castle with rook to the left/right, using
+        int16_t targetedRook {start - target > 0 ? start - 4 : start + 3};
+        if (toupper(game.getBoard().at(targetedRook).getType()) == 'R'    //Rook is in correct place
+            && !game.getBoard().at(targetedRook).m_hasMoved     //Rook has not moved
+            && checkLine(start, targetedRook, game)             //No pieces between
+            && !game.isPositionInDanger(start)                  //King cell is not in danger
+            && !game.isPositionInDanger(target)                 //Target cell is not in danger
+            && !game.isPositionInDanger((start + target) / 2))  //Cell between is not in danger
         return MoveType::CASTLING;
     }
     return MoveType::NOT_VALID;
 }
-MoveType Piece::isMoveLegal(const Position& s, const Position& t, Game& game)
+MoveType Piece::isMoveLegal(const Position& s, const Position& t, const Game& game) const
 {
+    //Check if piece is actually moving and not skipping turn
     if (s == t)
         return MoveType::NOT_VALID;
     int16_t start {positionToIndex(s)}, target{positionToIndex(t)};
@@ -162,11 +176,14 @@ MoveType Piece::isMoveLegal(const Position& s, const Position& t, Game& game)
     {
         case 'P': return PawnMove   (start, target, game);
         case 'N': return KnightMove (start, target);
-        case 'K': return KingMove   (start, target);
+        case 'K': return KingMove   (start, target, game);
         case 'R': return RookMove   (start, target, game);
         case 'B': return BishopMove (start, target, game);
         case 'Q': return QueenMove  (start, target, game);
         default : return MoveType::NOT_VALID;
     }
 }
-
+MoveType Piece::isMoveLegal(int16_t start, int16_t target, const Game& game) const
+{
+    return Piece::isMoveLegal(Position{start}, Position{target}, game);
+}

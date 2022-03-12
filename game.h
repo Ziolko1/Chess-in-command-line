@@ -6,7 +6,7 @@
 //It is not accepting values higher than 127 if uniform initialization is used
 constexpr char WHITE_SQUARE=0xDB;
 constexpr char BLACK_SQUARE=0xFF;
-constexpr char EMPTY_SQUARE=0x20;
+constexpr char EMPTY_SQUARE{0x20};
 
 //Board is square of 8x8 cells, no need for separate height and width variables
 constexpr int16_t BOARDSIZE{8};
@@ -29,5 +29,7 @@ public:
     Game();
     void PrintBoard() const;
     bool isPossitionOccupied(int16_t target) const;
+    bool isPositionInDanger(int16_t target) const;
+    bool isReachingLastRank(int16_t start, int16_t target) const;
     const std::vector<Piece>& getBoard() const;
 };

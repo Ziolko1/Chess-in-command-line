@@ -3,11 +3,11 @@
 
 Game::Game()
 {
-    for (uint32_t i{0}; i<64; ++i)
+    for (uint32_t i{0}; i<BOARDSIZE * BOARDSIZE; ++i)
     {
         m_board.emplace_back();
     }
-    for (int i{0}; i<8; ++i)
+    for (int i{0}; i<BOARDSIZE; ++i)
     {
         m_board.at(8+i) .setPiece('p',Color::BLACK);
         m_board.at(48+i).setPiece('P',Color::WHITE);
@@ -63,9 +63,9 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0) const
             //We need to swap middle of the square for chess piece symbol
             if(((std::floor(static_cast<float>(CELLS)/2))==j)       //Check for correct column
                 && rowNumber!=0                                     //Check for correct row
-                && m_board.at(i + (8 - rowNumber) * 8).getColor() != Color::EMPTY)
+                && m_board.at(i + (BOARDSIZE - rowNumber) * BOARDSIZE).getColor() != Color::EMPTY)
             {
-                output += m_board.at(i + (8 - rowNumber) * 8).getType();
+                output += m_board.at(i + (BOARDSIZE - rowNumber) * BOARDSIZE).getType();
             }
             else
             {
@@ -107,10 +107,27 @@ void Game::PrintBoard() const
         }
     }
 }
+bool Game::isPositionInDanger(int16_t target) const
+{
+    Color x {getOppositeColor(m_board.at(target).getColor())};
+    for (int16_t i{0}; i<m_board.size(); ++i)
+        if (m_board.at(i).isMoveLegal(i, target, *this) != MoveType::NOT_VALID
+            && m_board.at(i).getColor() == x)
+            return true;
+
+    return false;
+}
 bool Game::isPossitionOccupied(int16_t target) const
 {
     return m_board.at(target).getColor() == Color::EMPTY ? false : true;
 }
+bool Game::isReachingLastRank(int16_t start, int16_t target) const
+{
+
+    return ((m_board.at(start).getColor() == Color::WHITE && target / 8 == 0)
+         || (m_board.at(start).getColor() == Color::BLACK && target / 8 == 7));
+}
+
 const std::vector<Piece>& Game::getBoard() const
 {
     return m_board;

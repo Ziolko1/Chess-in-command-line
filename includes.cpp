@@ -19,8 +19,7 @@ Position ReadInput(const std::string& enquiry)
 {
     while (true) // Loop until user enters a valid input
     {
-        char x;
-        char y;
+        char x,y;
         std::cout << enquiry << '\n';
         std::cin >> x >> y;
 

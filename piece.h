@@ -9,19 +9,22 @@ class Piece
     Color m_color;
     bool m_hasMoved{false};
 
-    bool checkLine  (int16_t start, int16_t target, const Game& game);
-    MoveType PawnMove   (int16_t start, int16_t target, const Game& game);
-    MoveType KnightMove (int16_t start, int16_t target);
-    MoveType KingMove   (int16_t start, int16_t target);
-    MoveType RookMove   (int16_t start, int16_t target, const Game& game);
-    MoveType BishopMove (int16_t start, int16_t target, const Game& game);
-    MoveType QueenMove  (int16_t start, int16_t target, const Game& game);
+    bool checkLine  (int16_t start, int16_t target, const Game& game) const;
+    MoveType PawnMove   (int16_t start, int16_t target, const Game& game) const;
+    MoveType KnightMove (int16_t start, int16_t target) const;
+    MoveType KingMove   (int16_t start, int16_t target, const Game& game) const;
+    MoveType RookMove   (int16_t start, int16_t target, const Game& game) const;
+    MoveType BishopMove (int16_t start, int16_t target, const Game& game) const;
+    MoveType QueenMove  (int16_t start, int16_t target, const Game& game) const;
 public:
-    Piece () : m_type(' '), m_color(Color::EMPTY) {}
-    Piece (char t, Color c) : m_type(t), m_color(c) {}
+    Piece();
+    Piece(char t, Color c);
     void setPiece(char t, Color c);
+    void setMoved();
+    bool getMoved() const;
     char getType() const;
     Color getColor() const;
-    MoveType isMoveLegal(const Position& start, const Position& target, const Game& game);
+    MoveType isMoveLegal(int16_t start, int16_t target, const Game& game) const;
+    MoveType isMoveLegal(const Position& start, const Position& target, const Game& game) const;
 };
 
