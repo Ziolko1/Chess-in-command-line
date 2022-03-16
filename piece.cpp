@@ -72,26 +72,20 @@ bool Piece::checkLine(int16_t start, int16_t target, const Game& game) const
 MoveType Piece::PawnMove   (int16_t start, int16_t target, const Game& game) const
 {
     int16_t dir {m_color == Color::WHITE ? -1 : 1}, dx{target - start};
-    if (dx == dir * 8 && !game.isPossitionOccupied(target))     //Move ahead
+    if ((dx == dir * 8 && !game.isPossitionOccupied(target))  ||        //Move ahead
+       ((dx == dir * 7 || dx == dir * 9)                                //Capture diagonally
+        && (game.getBoard().at(target).getColor() == getOppositeColor(m_color))))
     {
         if (game.isReachingLastRank(start, target))
             return MoveType::PROMOTION;
-
-        return MoveType::MOVE;
-    }
-    if ((dx == dir * 7 || dx == dir * 9)                //Capture diagonally
-        && (game.getBoard().at(target).getColor() == getOppositeColor (m_color)))
-    {
-         if (game.isReachingLastRank(start, target))
-            return MoveType::PROMOTION;
-
+        if (game.getBoard().at(target).getType() == 'T')
+            return MoveType::EN_PASSANT;
         return MoveType::MOVE;
     }
     if (dx == dir * 16 && m_hasMoved == false           //Double move
          && !game.isPossitionOccupied(target)           //check targeted cell
          && !game.isPossitionOccupied(target + dx / 2)) //and one between
             return MoveType::PAWN_PUSH;
-
     return MoveType::NOT_VALID;
 }
 MoveType Piece::RookMove   (int16_t start, int16_t target, const Game& game) const

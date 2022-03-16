@@ -22,14 +22,19 @@ class Piece;
 class Game
 {
     std::vector<Piece> m_board;
+    Color m_activePlayer{Color::WHITE};
 
     void PrintColumnSymbols() const;
     void PrintLine(bool whiteFirst, int rowNumber) const;
 public:
     Game();
-    void PrintBoard() const;
+    bool play();
+    bool oneTurn();
+    void printBoard() const;
+    void printInfo() const;
     bool isPossitionOccupied(int16_t target) const;
     bool isPositionInDanger(int16_t target) const;
     bool isReachingLastRank(int16_t start, int16_t target) const;
+    std::vector <int16_t> getMove() const;
     const std::vector<Piece>& getBoard() const;
 };

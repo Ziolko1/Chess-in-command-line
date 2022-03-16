@@ -10,7 +10,7 @@ int main()
         tests();
 
     Game game;
-    game.PrintBoard();
-
+    game.oneTurn();
+    game.oneTurn();
     return 0;
 }

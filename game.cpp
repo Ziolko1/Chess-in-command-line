@@ -1,6 +1,16 @@
 #include "game.h"
 #include <cmath>    //floor, ceil
 
+/*Pieces:
+p -> Pawn
+r -> Rook
+n -> Knight
+b -> Bishop
+q -> Queen
+k -> King
+
+t -> En passaint token
+*/
 Game::Game()
 {
     for (uint32_t i{0}; i<BOARDSIZE * BOARDSIZE; ++i)
@@ -87,7 +97,7 @@ void Game::PrintLine (bool whiteFirst=true, int rowNumber=0) const
     std::cout << output << '\n';
 }
 
-void Game::PrintBoard() const
+void Game::printBoard() const
 {
     //First - column symbols to guide players
     Game::PrintColumnSymbols();
@@ -107,12 +117,85 @@ void Game::PrintBoard() const
         }
     }
 }
+
+void Game::printInfo() const
+{
+    if (m_activePlayer == Color::WHITE)
+        std::cout << "Your pieces are white. "
+        << "White pieces are represented with BIG LETTERS.\n";
+    else
+        std::cout << "Your pieces are black. "
+        << "Black pieces are represented with small letters.\n";
+}
+
+bool Game::play()
+{
+
+}
+
+bool Game::oneTurn()
+{
+    bool invalidMove{true};
+    while (invalidMove)
+    {
+        std::vector<int16_t> oneMove {getMove()};
+        Piece dummy {m_board.at(oneMove.at(1))};
+        m_board.at(oneMove.at(1)) = m_board.at(oneMove.at(0));
+        m_board.at(oneMove.at(0)) = Piece();
+
+        //Find and check if King is not endangered by this move
+        int16_t kingPosition;
+        for (int16_t i{0}; i<m_board.size(); ++i)
+        {
+            if (toupper(m_board.at(i).getType()) == 'K' && m_board.at(i).getColor() == m_activePlayer)
+            {
+                kingPosition = i;
+                i = m_board.size();
+            }
+        }
+        if (isPositionInDanger(kingPosition))
+        {
+            std::cout << "This move puts your king in danger!\n";
+            m_board.at(oneMove.at(0)) = m_board.at(oneMove.at(0));
+            m_board.at(oneMove.at(1)) = dummy;
+            continue;
+        }
+        else
+        {
+            m_activePlayer = getOppositeColor(m_activePlayer);
+            invalidMove = false;
+        }
+    }
+}
+
+std::vector <int16_t> Game::getMove() const
+{
+    while (true)
+    {
+        printBoard();
+        printInfo();
+        Position start {ReadInput("Enter starting position (ie. B1): ")};
+        if (m_board.at(positionToIndex(start)).getColor() != m_activePlayer)
+        {
+            std::cout << "That is not your piece!\n";
+            continue;
+        }
+        Position target {ReadInput("Enter target position (ie. C3): ")};
+        MoveType movePrototype {m_board.at(positionToIndex(start)).isMoveLegal(start, target, *this)};
+        if (movePrototype == MoveType::NOT_VALID)
+        {
+            std::cout << "That move is not valid!\n";
+            continue;
+        }
+        return {positionToIndex(start), positionToIndex(target)};
+    }
+}
 bool Game::isPositionInDanger(int16_t target) const
 {
     Color x {getOppositeColor(m_board.at(target).getColor())};
     for (int16_t i{0}; i<m_board.size(); ++i)
-        if (m_board.at(i).isMoveLegal(i, target, *this) != MoveType::NOT_VALID
-            && m_board.at(i).getColor() == x)
+        if (m_board.at(i).getColor() == x
+            && m_board.at(i).isMoveLegal(i, target, *this) != MoveType::NOT_VALID)
             return true;
 
     return false;
