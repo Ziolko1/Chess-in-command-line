@@ -109,10 +109,13 @@ MoveType Piece::KingMove   (int16_t start, int16_t target) const
 //Check if piece is changing its board position properly
 MoveType Piece::isMoveLegal(const Position& s, const Position& t) const
 {
+    return isMoveLegal(positionToIndex(s), positionToIndex(t));
+}
+MoveType Piece::isMoveLegal(int16_t start, int16_t target) const
+{
     //Check if piece is actually moving and not skipping turn
-    if (s == t)
+    if (start == target)
         return MoveType::NOT_VALID;
-    int16_t start {positionToIndex(s)}, target{positionToIndex(t)};
 
     char piece_type{toupper(m_type)};
     switch (piece_type)
@@ -125,8 +128,5 @@ MoveType Piece::isMoveLegal(const Position& s, const Position& t) const
         case 'Q': return QueenMove  (start, target);
         default : return MoveType::NOT_VALID;
     }
-}
-MoveType Piece::isMoveLegal(int16_t start, int16_t target) const
-{
     return Piece::isMoveLegal(Position{start}, Position{target});
 }

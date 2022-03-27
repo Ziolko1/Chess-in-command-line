@@ -13,7 +13,7 @@ struct Position
     bool operator== (const Position& p) const;
 };
 
-enum Color
+enum class Color
 {
     EMPTY,
     WHITE,
