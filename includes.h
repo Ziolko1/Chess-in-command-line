@@ -13,7 +13,7 @@ struct Position
     bool operator== (const Position& p) const;
 };
 
-enum class Color
+enum Color
 {
     EMPTY,
     WHITE,
@@ -25,9 +25,10 @@ enum class MoveType
     NOT_VALID,
     MOVE,
     PAWN_PUSH,
-    CASTLING,
+    PAWN_CAPTURE,
     EN_PASSANT,
-    PROMOTION
+    PROMOTION,
+    CASTLING
 };
 
 void tests();

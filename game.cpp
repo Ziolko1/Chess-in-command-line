@@ -9,8 +9,9 @@ b -> Bishop
 q -> Queen
 k -> King
 
-t -> En passaint token
+t -> Token for en passant
 */
+
 Game::Game()
 {
     for (uint32_t i{0}; i<BOARDSIZE * BOARDSIZE; ++i)
@@ -130,40 +131,50 @@ void Game::printInfo() const
 
 bool Game::play()
 {
-
+    while (true)
+        oneTurn();
 }
-
+void Game::swapPlayer()
+{
+    m_activePlayer = getOppositeColor(m_activePlayer);
+    Piece dummy {'k', m_activePlayer};
+    for (int16_t i{0}; i<m_board.size(); ++i)
+    {
+        if (m_board.at(i) == dummy)
+        {
+            m_activePlayerKingPosition = i;
+            std::cout << "King found on position: " << i << '\n';
+            return;
+        }
+    }
+}
 bool Game::oneTurn()
 {
-    bool invalidMove{true};
-    while (invalidMove)
+    while (true)
     {
+        printBoard();
+        printInfo();
+        if (isPositionInDanger(m_activePlayerKingPosition))
+        {
+            std::cout << "Your king is in check!\n";
+        }
         std::vector<int16_t> oneMove {getMove()};
+
         Piece dummy {m_board.at(oneMove.at(1))};
         m_board.at(oneMove.at(1)) = m_board.at(oneMove.at(0));
         m_board.at(oneMove.at(0)) = Piece();
 
-        //Find and check if King is not endangered by this move
-        int16_t kingPosition;
-        for (int16_t i{0}; i<m_board.size(); ++i)
-        {
-            if (toupper(m_board.at(i).getType()) == 'K' && m_board.at(i).getColor() == m_activePlayer)
-            {
-                kingPosition = i;
-                i = m_board.size();
-            }
-        }
-        if (isPositionInDanger(kingPosition))
+        if (isPositionInDanger(m_activePlayerKingPosition))
         {
             std::cout << "This move puts your king in danger!\n";
-            m_board.at(oneMove.at(0)) = m_board.at(oneMove.at(0));
+            m_board.at(oneMove.at(0)) = m_board.at(oneMove.at(1));
             m_board.at(oneMove.at(1)) = dummy;
             continue;
         }
         else
         {
-            m_activePlayer = getOppositeColor(m_activePlayer);
-            invalidMove = false;
+            swapPlayer();
+            return true;
         }
     }
 }
@@ -172,22 +183,32 @@ std::vector <int16_t> Game::getMove() const
 {
     while (true)
     {
-        printBoard();
-        printInfo();
-        Position start {ReadInput("Enter starting position (ie. B1): ")};
-        if (m_board.at(positionToIndex(start)).getColor() != m_activePlayer)
+        int16_t start {positionToIndex(ReadInput("Enter starting position (ie. B1): "))};
+        if (m_board.at(start).getColor() != m_activePlayer)
         {
             std::cout << "That is not your piece!\n";
             continue;
         }
-        Position target {ReadInput("Enter target position (ie. C3): ")};
-        MoveType movePrototype {m_board.at(positionToIndex(start)).isMoveLegal(start, target, *this)};
-        if (movePrototype == MoveType::NOT_VALID)
+        int16_t target {positionToIndex(ReadInput("Enter target position (ie. C3): "))};
+        if (m_board.at(start).isMoveLegal(start, target) == MoveType::NOT_VALID)
         {
-            std::cout << "That move is not valid!\n";
+            std::cout << "This piece can not move in that way!\n";
             continue;
         }
-        return {positionToIndex(start), positionToIndex(target)};
+        if (((toupper(m_board.at(start).getType()) == 'B') ||   //Bishop, rook and queen
+             (toupper(m_board.at(start).getType()) == 'R') ||   //can't jump over pieces
+             (toupper(m_board.at(start).getType()) == 'Q')) &&
+            !isLineEmpty(start, target))
+        {
+            std::cout << "There is something in the way!\n";
+            continue;
+        }
+        if (m_board.at(target).getColor() == m_activePlayer)
+        {
+            std::cout << "You can not capture your own pieces!\n";
+            continue;
+        }
+        return {start, target};
     }
 }
 bool Game::isPositionInDanger(int16_t target) const
@@ -195,13 +216,17 @@ bool Game::isPositionInDanger(int16_t target) const
     Color x {getOppositeColor(m_board.at(target).getColor())};
     for (int16_t i{0}; i<m_board.size(); ++i)
         if (m_board.at(i).getColor() == x
-            && m_board.at(i).isMoveLegal(i, target, *this) != MoveType::NOT_VALID)
-            return true;
-
+            && m_board.at(i).isMoveLegal(i, target) != MoveType::NOT_VALID)
+            {
+                std::cout << "Piece at " << i << " puts " << target << " in danger!\n";
+                return true;
+            }
     return false;
 }
 bool Game::isPossitionOccupied(int16_t target) const
 {
+    std::cout << target << '\n';
+    getchar();
     return m_board.at(target).getColor() == Color::EMPTY ? false : true;
 }
 bool Game::isReachingLastRank(int16_t start, int16_t target) const
@@ -209,6 +234,33 @@ bool Game::isReachingLastRank(int16_t start, int16_t target) const
 
     return ((m_board.at(start).getColor() == Color::WHITE && target / 8 == 0)
          || (m_board.at(start).getColor() == Color::BLACK && target / 8 == 7));
+}
+
+bool Game::isLineEmpty(int16_t start, int16_t target) const
+{
+    //Check if a straight, horizontal, vertical or diagonal line can be made from provided points
+    //If it is horizontal or vertical only one coordinate will change     (queen, rook)
+    //If is is diagonal both coordinates have to change equal amount      (queen, bishop)
+    //We do not have to check current piece position and target - these will be checked by caller
+    int changeX {(start - target) % 8};
+    int changeY {(start - target) / 8};
+
+    if ((!changeX && changeY) || (changeX && !changeY) || abs(changeX)==abs(changeY))
+    {
+        while (changeX || changeY)
+        {
+            //(in/de)crease change before adding position to skip starting position
+            if (changeX)
+                (changeX>0 ? --changeX : ++changeX);
+            if (changeY)
+                (changeY>0 ? --changeY : ++changeY);
+            //Check to avoid adding target position
+            if ((changeX || changeY) && (isPossitionOccupied(target + changeX + changeY*8)))
+                    return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 const std::vector<Piece>& Game::getBoard() const

@@ -2,11 +2,9 @@
 #include "includes.h"
 #include "piece.h"
 
-//Uniform initialization did not work on my compiler, char is implemented as signed
-//It is not accepting values higher than 127 if uniform initialization is used
-constexpr char WHITE_SQUARE=0xDB;
-constexpr char BLACK_SQUARE=0xFF;
-constexpr char EMPTY_SQUARE{0x20};
+constexpr uint8_t WHITE_SQUARE {0xDB};
+constexpr uint8_t BLACK_SQUARE {0xFF};
+constexpr uint8_t EMPTY_SQUARE {0x20};
 
 //Board is square of 8x8 cells, no need for separate height and width variables
 constexpr int16_t BOARDSIZE{8};
@@ -23,6 +21,7 @@ class Game
 {
     std::vector<Piece> m_board;
     Color m_activePlayer{Color::WHITE};
+    int16_t m_activePlayerKingPosition {60};
 
     void PrintColumnSymbols() const;
     void PrintLine(bool whiteFirst, int rowNumber) const;
@@ -30,10 +29,13 @@ public:
     Game();
     bool play();
     bool oneTurn();
+    void swapPlayer();
     void printBoard() const;
     void printInfo() const;
+
     bool isPossitionOccupied(int16_t target) const;
     bool isPositionInDanger(int16_t target) const;
+    bool isLineEmpty(int16_t start, int16_t target) const;
     bool isReachingLastRank(int16_t start, int16_t target) const;
     std::vector <int16_t> getMove() const;
     const std::vector<Piece>& getBoard() const;
