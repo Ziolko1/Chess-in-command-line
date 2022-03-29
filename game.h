@@ -16,6 +16,7 @@ constexpr int16_t BOARDSIZE{8};
 //  |_____|
 constexpr int16_t CELLS{5};
 
+struct SingleMove;
 class Piece;
 class Game
 {
@@ -35,8 +36,9 @@ public:
 
     bool isPossitionOccupied(int16_t target) const;
     bool isPositionInDanger(int16_t target) const;
-    bool isLineEmpty(int16_t start, int16_t target) const;
-    bool isReachingLastRank(int16_t start, int16_t target) const;
-    std::vector <int16_t> getMove() const;
+    bool isColliding(const SingleMove& s) const;
+    bool isLineEmpty(const SingleMove& s) const;
+    bool isReachingLastRank(const SingleMove& s) const;
+    SingleMove getMove() const;
     const std::vector<Piece>& getBoard() const;
 };

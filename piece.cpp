@@ -41,9 +41,9 @@ bool Piece::operator== (const Piece& p)
 //   X+21  X+22  X+23  X+24  X+25  X+26  X+27  X+28
 //   X+29  X+30  X+31  X+32  X+33  X+34  X+35  X+36
 
-MoveType Piece::PawnMove   (int16_t start, int16_t target) const
+MoveType Piece::PawnMove   (const SingleMove& s) const
 {
-    int16_t dir {m_color == Color::WHITE ? -1 : 1}, dx{target - start};
+    int16_t dir {m_color == Color::WHITE ? -1 : 1}, dx{s.target - s.start};
     if (dx == dir * 8)                          //Standard move
         return MoveType::MOVE;
 
@@ -55,17 +55,17 @@ MoveType Piece::PawnMove   (int16_t start, int16_t target) const
 
     return MoveType::NOT_VALID;
 }
-MoveType Piece::RookMove   (int16_t start, int16_t target) const
+MoveType Piece::RookMove   (const SingleMove& s) const
 {
-    Position s(start), t(target);
-    if ((s.m_x == t.m_x) || (s.m_y == t.m_y))   //One of the coordinates is the same
-        return MoveType::MOVE;
+    Position st(s.start), ta(s.target);
+    if ((st.m_x == ta.m_x) || (st.m_y == ta.m_y))   //One of the coordinates is the same
+        return MoveType::CHECK_COLLISION;
 
     return MoveType::NOT_VALID;
 }
-MoveType Piece::KnightMove (int16_t start, int16_t target) const
+MoveType Piece::KnightMove (const SingleMove& s) const
 {
-    int16_t dx {abs(start - target)};
+    int16_t dx {abs(s.start - s.target)};
     std::vector <int16_t> correctValues {6, 10, 15, 17};
     for (int16_t entry : correctValues)
         if (dx == entry)
@@ -73,37 +73,33 @@ MoveType Piece::KnightMove (int16_t start, int16_t target) const
 
     return MoveType::NOT_VALID;
 }
-MoveType Piece::BishopMove (int16_t start, int16_t target) const
+MoveType Piece::BishopMove (const SingleMove& s) const
 {
-    int16_t dx {abs((start%8) - (target%8))}, dy{abs((start/8) - (target/8))};
+    int16_t dx {abs((s.start%8) - (s.target%8))}, dy{abs((s.start/8) - (s.target/8))};
     if (dx == dy)
-            return MoveType::MOVE;
+        return MoveType::CHECK_COLLISION;
 
     return MoveType::NOT_VALID;
 }
-MoveType Piece::QueenMove  (int16_t start, int16_t target) const
+MoveType Piece::QueenMove  (const SingleMove& s) const
 {
-    if (RookMove(start, target) == MoveType::MOVE
-        || BishopMove (start, target) == MoveType::MOVE)
-        return MoveType::MOVE;
-    else
-        return MoveType::NOT_VALID;
+    if (RookMove(s) == MoveType::CHECK_COLLISION
+        || BishopMove(s) == MoveType::CHECK_COLLISION)
+        return MoveType::CHECK_COLLISION;
+
+    return MoveType::NOT_VALID;
 }
-MoveType Piece::KingMove   (int16_t start, int16_t target) const
+MoveType Piece::KingMove   (const SingleMove& s) const
 {
-    int16_t dx {abs(start - target)};
+    int16_t dx {abs(s.start - s.target)};
     std::vector <int16_t> correctValues {1, 7, 8, 9};
     for (int16_t entry : correctValues)
-    {
         if (dx == entry)
-        {
             return MoveType::MOVE;
-        }
-    }
+
     if (dx == 2 && !m_hasMoved)     //Player is trying to move king 2 cells -> castiling
-    {
         return MoveType::CASTLING;
-    }
+
     return MoveType::NOT_VALID;
 }
 //Check if piece is changing its board position properly
@@ -111,22 +107,21 @@ MoveType Piece::isMoveLegal(const Position& s, const Position& t) const
 {
     return isMoveLegal(positionToIndex(s), positionToIndex(t));
 }
-MoveType Piece::isMoveLegal(int16_t start, int16_t target) const
+MoveType Piece::isMoveLegal(const SingleMove& s) const
 {
     //Check if piece is actually moving and not skipping turn
-    if (start == target)
+    if (s.start == s.target)
         return MoveType::NOT_VALID;
 
     char piece_type{toupper(m_type)};
     switch (piece_type)
     {
-        case 'P': return PawnMove   (start, target);
-        case 'N': return KnightMove (start, target);
-        case 'K': return KingMove   (start, target);
-        case 'R': return RookMove   (start, target);
-        case 'B': return BishopMove (start, target);
-        case 'Q': return QueenMove  (start, target);
+        case 'P': return PawnMove   (s);
+        case 'N': return KnightMove (s);
+        case 'K': return KingMove   (s);
+        case 'R': return RookMove   (s);
+        case 'B': return BishopMove (s);
+        case 'Q': return QueenMove  (s);
         default : return MoveType::NOT_VALID;
     }
-    return Piece::isMoveLegal(Position{start}, Position{target});
 }

@@ -13,6 +13,13 @@ struct Position
     bool operator== (const Position& p) const;
 };
 
+struct SingleMove
+{
+    int16_t start, target;
+
+    SingleMove(int16_t s, int16_t t);
+};
+
 enum class Color
 {
     EMPTY,
@@ -24,9 +31,9 @@ enum class MoveType
 {
     NOT_VALID,
     MOVE,
+    CHECK_COLLISION,
     PAWN_PUSH,
     PAWN_CAPTURE,
-    EN_PASSANT,
     PROMOTION,
     CASTLING
 };

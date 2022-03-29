@@ -2,6 +2,7 @@
 
 Position::Position (char x, char y): m_x(x), m_y(y) {}
 Position::Position (int16_t i) : m_x (i%8 + 'A'), m_y ('8' - i/8) {}
+SingleMove::SingleMove(int16_t s, int16_t t) : start(s), target(t) {}
 
 void tests()
 {
